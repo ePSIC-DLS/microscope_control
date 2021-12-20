@@ -71,6 +71,16 @@ class merlin_acquisition():
         l_session.setText('Session ID')
         l_session.move(10, 100)
         
+        self.sample = QLineEdit(w)
+        self.sample.setGeometry(100, 100, 70, 20)
+        self.sample.setObjectName("sample")
+        self.sample.setText("au_xgrating")
+        self.sample.move(250,100)
+        l_sample = QLabel(w)
+        l_sample.setText('Sample name')
+        l_sample.move(180, 100)        
+        
+        
         b = QPushButton(w)
         b.setText("Scan")
         b.move(50,190)
@@ -113,7 +123,9 @@ class merlin_acquisition():
     def start_acquisition(self):
         
         session=self.le.text()
+        sample=self.sample.text()
         print(session)
+        print(sample)
         dwell_val= int(self.dwell.currentText())
         px_val = int(self.px.currentText())
         bit_val = int(self.bitdepth.currentText())
@@ -140,17 +152,21 @@ class merlin_acquisition():
         retval = msg.exec_()
         sleep(0.5)
         print('1')
-        
         datetime_base = params.time_stamp
-        save_path = '\\data\\2021\\'+session+'\\Merlin'
-        print(save_path)
-        
-        params_file_path = 'X:'+ save_path +'\\' + datetime_base +'.hdf'
-        print(params_file_path)
-        
+        if sample is None:
+            save_path = '\\data\\2021\\'+session+'\\Merlin'
+            print(save_path)
+            params_file_path = 'X:'+ save_path +'\\' + datetime_base +'.hdf'
+            print(params_file_path)
+        else:
+            save_path = '\\data\\2021\\'+session+'\\Merlin\\'+sample
+            print(save_path)
+            params_file_path = 'X:'+ save_path +'\\' + datetime_base +'.hdf'
+            print(params_file_path)
         data_path = 'X:' + save_path
         if not os.path.exists(data_path):
-            os.makedirs(data_path)        
+            os.makedirs(data_path)  
+            
         
         params.write_hdf(params_file_path)
         hostname = '10.182.0.5'
