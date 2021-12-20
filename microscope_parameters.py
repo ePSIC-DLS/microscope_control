@@ -18,6 +18,8 @@ class microscope_parameters():
         self.zdf = zdf
         self.scan_size = scan_size
         
+        self.time_stamp = str(datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
+        
         self.set_parameters()
         
     def set_parameters(self):
@@ -281,7 +283,7 @@ class microscope_parameters():
         return("Please check the following: \n-Check detectors are out if needed"+
                "\n-Check Oneview has been removed."+
                "\n-Check Merlin is inserted and setup correctly."+
-               "\n\n File will be saved with name " + str(datetime.datetime.now().strftime('%Y%m%d_%H%M%S')) +
+               "\n\n File will be saved with name " + self.time_stamp +
                "\nMagnification: " + str(self.magnification) + "X" +
                "\nScan rotation: " + str(self.scan_rotation) + " degrees" +
                "\nHT: " + str(int(self.ht_value/1000)) + " kV" +
