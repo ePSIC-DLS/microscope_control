@@ -141,20 +141,24 @@ class merlin_acquisition():
         sleep(0.5)
         print('1')
         
-        datetime_base = datetime.now().strftime('%Y%m%d_%H%M%S')
+        datetime_base = params.time_stamp
         save_path = '\\data\\2021\\'+session+'\\Merlin'
         print(save_path)
+        
         params_file_path = 'X:'+ save_path +'\\' + datetime_base +'.hdf'
         print(params_file_path)
+        
+        data_path = 'X:' + save_path
+        if not os.path.exists(data_path):
+            os.makedirs(data_path)        
+        
         params.write_hdf(params_file_path)
         hostname = '10.182.0.5'
         print('2') 
         
         merlin_cmd = MERLIN_connection(hostname, channel='cmd')
         print('3')       
-        data_path = 'X:' + save_path
-        if not os.path.exists(data_path):
-            os.makedirs(data_path)
+
         
         merlin_cmd.setValue('NUMFRAMESTOACQUIRE', px_val*px_val)
         merlin_cmd.setValue('COUNTERDEPTH', bit_val)
