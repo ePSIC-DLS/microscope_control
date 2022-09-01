@@ -71,6 +71,16 @@ class merlin_acquisition():
         l_session.setText('Session ID')
         l_session.move(10, 100)
         
+        self.sample = QLineEdit(w)
+        self.sample.setGeometry(100, 100, 70, 20)
+        self.sample.setObjectName("sample")
+        self.sample.setText("au_xgrating")
+        self.sample.move(250,100)
+        l_sample = QLabel(w)
+        l_sample.setText('Sample name')
+        l_sample.move(180, 100)        
+        
+        
         b = QPushButton(w)
         b.setText("Scan")
         b.move(50,190)
@@ -113,7 +123,9 @@ class merlin_acquisition():
     def start_acquisition(self):
         
         session=self.le.text()
+        sample=self.sample.text()
         print(session)
+        print(sample)
         dwell_val= int(self.dwell.currentText())
         px_val = int(self.px.currentText())
         bit_val = int(self.bitdepth.currentText())
@@ -140,21 +152,33 @@ class merlin_acquisition():
         retval = msg.exec_()
         sleep(0.5)
         print('1')
-        
-        datetime_base = datetime.now().strftime('%Y%m%d_%H%M%S')
-        save_path = '\\data\\2021\\'+session+'\\Merlin'
-        print(save_path)
-        params_file_path = 'X:'+ save_path +'\\' + datetime_base +'.hdf'
-        print(params_file_path)
-        params.write_hdf(params_file_path)
+        datetime_base = params.time_stamp
+        if sample is None:
+            save_path = '\\data\\2022\\'+session+'\\Merlin'
+            print(save_path)
+            params_file_path = 'X:'+ save_path +'\\' + datetime_base +'.hdf'
+            print(params_file_path)
+        else:
+            save_path = '\\data\\2022\\'+session+'\\Merlin\\'+sample
+            print(save_path)
+            params_file_path = 'X:'+ save_path +'\\' + datetime_base +'.hdf'
+            print(params_file_path)
+        data_path = 'X:' + save_path
+        if not os.path.exists(data_path):
+            os.makedirs(data_path)  
+            
+        merlin_params = {}
+        merlin_params['set_dwell_time(usec)'] = dwell_val
+        merlin_params['set_scan_px'] = px_val
+        merlin_params['set_bit_depth'] = bit_val
+  
+        params.write_hdf(params_file_path, merlin_params)
         hostname = '10.182.0.5'
         print('2') 
         
         merlin_cmd = MERLIN_connection(hostname, channel='cmd')
         print('3')       
-        data_path = 'X:' + save_path
-        if not os.path.exists(data_path):
-            os.makedirs(data_path)
+
         
         merlin_cmd.setValue('NUMFRAMESTOACQUIRE', px_val*px_val)
         merlin_cmd.setValue('COUNTERDEPTH', bit_val)
@@ -177,10 +201,19 @@ class merlin_acquisition():
         scanning = 1
         #set timeout for scanning 
         #delete_TO = 1
-        wait_until = (dwell_val/10**6)*(px_val**2)*1.7
+        if px_val==64:
+            fly_back = 2 * (dwell_val/10**6) * px_val * px_val
+        else:
+            #fly_back = 1.7 * (dwell_val/10**6) * px_val * px_val
+            fly_back = 30 
+        wait_until = (dwell_val/10**6)*(px_val**2) + fly_back
+        print(wait_until)
+#        print(fly_back)
+#        print('wait_until: ', wait_until)
         #print('6')
         #not working from here:
         start_time = cpu_time.time()
+#        print('start_time: ', start_time)
         #merlin_cmd = MERLIN_connection(hostname, channel='cmd')
         while scanning == 1:
             #print(scanning)
@@ -188,8 +221,10 @@ class merlin_acquisition():
             #print(cpu_time.time())
             #print(int((merlin_cmd.getVariable('DETECTORSTATUS'))))
             #print(scanning)
+        
             if start_time + wait_until < cpu_time.time():
                 scanning = 0
+#                print('cpu_time: ', cpu_time.time())
                 #print('timeout')
             sleep(0.1)
 

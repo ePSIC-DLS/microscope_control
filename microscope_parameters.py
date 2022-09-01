@@ -18,6 +18,8 @@ class microscope_parameters():
         self.zdf = zdf
         self.scan_size = scan_size
         
+        self.time_stamp = str(datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
+        
         self.set_parameters()
         
     def set_parameters(self):
@@ -106,7 +108,7 @@ class microscope_parameters():
         self.stage_pos = self.stage.GetPos()
         self.piezo_pos = self.stage.GetPiezoPosi()
         
-    def write_hdf(self, filename):
+    def write_hdf(self, filename, merlin_params=None):
         f = h5py.File(filename,'w')
         data_group = f.create_group('experiment:NXentry/data:NXdata')
         data_group['data'] = h5py.ExternalLink(filename[:-3]+"_data.hdf", "/Experiments/__unamed__/data")
@@ -132,6 +134,10 @@ class microscope_parameters():
         metadata_group['z_pos(m)'] = self.stage_pos[2]*10**-9
         metadata_group['x_tilt(deg)'] = self.stage_pos[3]
         metadata_group['y_tilt(deg)'] = self.stage_pos[4]
+        
+        if merlin_params is not None:
+            for key in merlin_params:
+                metadata_group[key] = merlin_params[key]
         
         lens_group = metadata_group.create_group('lens_values')
         lens_group['CL1'] = self.cl1
@@ -281,7 +287,7 @@ class microscope_parameters():
         return("Please check the following: \n-Check detectors are out if needed"+
                "\n-Check Oneview has been removed."+
                "\n-Check Merlin is inserted and setup correctly."+
-               "\n\n File will be saved with name " + str(datetime.datetime.now().strftime('%Y%m%d_%H%M%S')) +
+               "\n\n File will be saved with name " + self.time_stamp +
                "\nMagnification: " + str(self.magnification) + "X" +
                "\nScan rotation: " + str(self.scan_rotation) + " degrees" +
                "\nHT: " + str(int(self.ht_value/1000)) + " kV" +
