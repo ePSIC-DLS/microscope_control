@@ -108,7 +108,7 @@ class microscope_parameters():
         self.stage_pos = self.stage.GetPos()
         self.piezo_pos = self.stage.GetPiezoPosi()
         
-    def write_hdf(self, filename):
+    def write_hdf(self, filename, merlin_params=None):
         f = h5py.File(filename,'w')
         data_group = f.create_group('experiment:NXentry/data:NXdata')
         data_group['data'] = h5py.ExternalLink(filename[:-3]+"_data.hdf", "/Experiments/__unamed__/data")
@@ -134,6 +134,10 @@ class microscope_parameters():
         metadata_group['z_pos(m)'] = self.stage_pos[2]*10**-9
         metadata_group['x_tilt(deg)'] = self.stage_pos[3]
         metadata_group['y_tilt(deg)'] = self.stage_pos[4]
+        
+        if merlin_params is not None:
+            for key in merlin_params:
+                metadata_group[key] = merlin_params[key]
         
         lens_group = metadata_group.create_group('lens_values')
         lens_group['CL1'] = self.cl1

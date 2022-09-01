@@ -154,12 +154,12 @@ class merlin_acquisition():
         print('1')
         datetime_base = params.time_stamp
         if sample is None:
-            save_path = '\\data\\2021\\'+session+'\\Merlin'
+            save_path = '\\data\\2022\\'+session+'\\Merlin'
             print(save_path)
             params_file_path = 'X:'+ save_path +'\\' + datetime_base +'.hdf'
             print(params_file_path)
         else:
-            save_path = '\\data\\2021\\'+session+'\\Merlin\\'+sample
+            save_path = '\\data\\2022\\'+session+'\\Merlin\\'+sample
             print(save_path)
             params_file_path = 'X:'+ save_path +'\\' + datetime_base +'.hdf'
             print(params_file_path)
@@ -167,8 +167,12 @@ class merlin_acquisition():
         if not os.path.exists(data_path):
             os.makedirs(data_path)  
             
-        
-        params.write_hdf(params_file_path)
+        merlin_params = {}
+        merlin_params['set_dwell_time(usec)'] = dwell_val
+        merlin_params['set_scan_px'] = px_val
+        merlin_params['set_bit_depth'] = bit_val
+  
+        params.write_hdf(params_file_path, merlin_params)
         hostname = '10.182.0.5'
         print('2') 
         
@@ -197,10 +201,19 @@ class merlin_acquisition():
         scanning = 1
         #set timeout for scanning 
         #delete_TO = 1
-        wait_until = (dwell_val/10**6)*(px_val**2)*1.7
+        if px_val==64:
+            fly_back = 2 * (dwell_val/10**6) * px_val * px_val
+        else:
+            #fly_back = 1.7 * (dwell_val/10**6) * px_val * px_val
+            fly_back = 30 
+        wait_until = (dwell_val/10**6)*(px_val**2) + fly_back
+        print(wait_until)
+#        print(fly_back)
+#        print('wait_until: ', wait_until)
         #print('6')
         #not working from here:
         start_time = cpu_time.time()
+#        print('start_time: ', start_time)
         #merlin_cmd = MERLIN_connection(hostname, channel='cmd')
         while scanning == 1:
             #print(scanning)
@@ -208,8 +221,10 @@ class merlin_acquisition():
             #print(cpu_time.time())
             #print(int((merlin_cmd.getVariable('DETECTORSTATUS'))))
             #print(scanning)
+        
             if start_time + wait_until < cpu_time.time():
                 scanning = 0
+#                print('cpu_time: ', cpu_time.time())
                 #print('timeout')
             sleep(0.1)
 
