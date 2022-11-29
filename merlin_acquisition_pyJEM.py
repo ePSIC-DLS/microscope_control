@@ -237,6 +237,8 @@ class merlin_acquisition():
         m_def.SetBeamBlank(1)
         
         merlin_cmd.__del__()
+        flag_file_path = os.path.join(data_path, datetime_base + '_data.is_done') 
+        open(flag_file_path, 'a').close()
         
 
 if __name__ == '__main__':
